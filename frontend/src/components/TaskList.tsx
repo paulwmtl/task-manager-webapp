@@ -77,7 +77,7 @@ const TaskList: React.FC = () => {
             setEditingTask(null);
             setIsCreating(false);
         } catch (err) {
-            setError('Failed to save task');
+            setError(err instanceof Error ? err.message : 'Failed to save task');
             console.error(err);
         }
     };

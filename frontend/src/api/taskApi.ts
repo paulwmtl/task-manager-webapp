@@ -28,16 +28,36 @@ const dbToTask = (dbTask: DbTask): Task => ({
 });
 
 // Convert app task to database task
-const taskToDb = (task: Omit<Task, 'id' | 'createdAt'>): Omit<DbTask, 'id' | 'created_at' | 'user_id'> => ({
+/**
+ * Convert an app task to the shape expected by the database.
+ * Optionally include a user_id when creating a new task.
+ */
+const taskToDb = (
+    task: Omit<Task, 'id' | 'createdAt'>,
+    userId?: string
+): Omit<DbTask, 'id' | 'created_at'> => ({
     title: task.title,
     description: task.description || null,
     status: task.status,
     importance: task.importance,
     category: task.category,
     due_date: task.dueDate || null,
+    user_id: userId ?? null
 });
 
 export const taskApi = {
+    /**
+     * Returns the currently authenticated user's UUID.
+     * Throws an error if no user is logged in.
+     */
+    getCurrentUserId: async (): Promise<string> => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            throw new Error('You must be logged in to perform this action');
+        }
+        return user.id;
+    },
+
     getAllTasks: async (): Promise<Task[]> => {
         const { data, error } = await supabase
             .from('tasks')
@@ -53,6 +73,7 @@ export const taskApi = {
     },
 
     getTaskById: async (id: number): Promise<Task> => {
+        const userId = await taskApi.getCurrentUserId();
         const { data, error } = await supabase
             .from('tasks')
             .select('*')
@@ -68,9 +89,10 @@ export const taskApi = {
     },
 
     createTask: async (task: Omit<Task, 'id' | 'createdAt'>): Promise<Task> => {
+        const userId = await taskApi.getCurrentUserId();
         const { data, error } = await supabase
             .from('tasks')
-            .insert([taskToDb(task)])
+            .insert([taskToDb(task, userId)])
             .select()
             .single();
 
@@ -99,14 +121,33 @@ export const taskApi = {
     },
 
     deleteTask: async (id: number): Promise<void> => {
-        const { error } = await supabase
+        const userId = await taskApi.getCurrentUserId();
+        const { data, error: selectError } = await supabase
+            .from('tasks')
+            .select('id') // Only need to select id to confirm existence and ownership
+            .eq('id', id)
+            .eq('user_id', userId)
+            .single();
+
+        if (selectError) {
+            console.error('Error fetching task for deletion:', selectError);
+            throw new Error(selectError.message);
+        }
+
+        if (!data) {
+            // This case should ideally be covered by selectError if single() fails to find a row
+            // but it's good for explicit clarity or if single() returns null data without error on no match
+            throw new Error('Task not found or you do not have permission to delete it.');
+        }
+
+        const { error: deleteError } = await supabase
             .from('tasks')
             .delete()
-            .eq('id', id);
+            .eq('id', id); // Ownership already confirmed by the select query
 
-        if (error) {
-            console.error('Error deleting task:', error);
-            throw new Error(error.message);
+        if (deleteError) {
+            console.error('Error deleting task:', deleteError);
+            throw new Error(deleteError.message);
         }
     }
 };
