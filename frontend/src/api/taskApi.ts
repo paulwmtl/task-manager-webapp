@@ -90,6 +90,7 @@ export const taskApi = {
 
     createTask: async (task: Omit<Task, 'id' | 'createdAt'>): Promise<Task> => {
         const userId = await taskApi.getCurrentUserId();
+        console.log('Creating task', { task, userId });
         const { data, error } = await supabase
             .from('tasks')
             .insert([taskToDb(task, userId)])
@@ -105,6 +106,7 @@ export const taskApi = {
     },
 
     updateTask: async (id: number, task: Omit<Task, 'id' | 'createdAt'>): Promise<Task> => {
+        console.log('Updating task', { id, task });
         const { data, error } = await supabase
             .from('tasks')
             .update(taskToDb(task))
