@@ -31,19 +31,29 @@ const dbToTask = (dbTask: DbTask): Task => ({
 /**
  * Convert an app task to the shape expected by the database.
  * Optionally include a user_id when creating a new task.
+ * Set includeUserId to false when updating to avoid overwriting user_id.
  */
 const taskToDb = (
     task: Omit<Task, 'id' | 'createdAt'>,
-    userId?: string
-): Omit<DbTask, 'id' | 'created_at'> => ({
-    title: task.title,
-    description: task.description || null,
-    status: task.status,
-    importance: task.importance,
-    category: task.category,
-    due_date: task.dueDate || null,
-    user_id: userId || null // Ensure it's null if undefined/empty string
-});
+    userId?: string,
+    includeUserId: boolean = true
+): Partial<Omit<DbTask, 'id' | 'created_at'>> => {
+    const dbTask: Partial<Omit<DbTask, 'id' | 'created_at'>> = {
+        title: task.title,
+        description: task.description || null,
+        status: task.status,
+        importance: task.importance,
+        category: task.category,
+        due_date: task.dueDate || null,
+    };
+
+    // Only include user_id if explicitly requested (for creation)
+    if (includeUserId) {
+        dbTask.user_id = userId || null;
+    }
+
+    return dbTask;
+};
 
 export const taskApi = {
     /**
@@ -110,7 +120,7 @@ export const taskApi = {
         console.log('Updating task', { id, task });
         const { data, error } = await supabase
             .from('tasks')
-            .update(taskToDb(task))
+            .update(taskToDb(task, undefined, false)) // Don't include user_id in updates
             .eq('id', id)
             .select()
             .single();

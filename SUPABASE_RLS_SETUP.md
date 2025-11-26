@@ -8,15 +8,13 @@ Damit jeder Benutzer nur seine eigenen Tasks sehen kann, musst du Row Level Secu
 
 ### 1. Gehe zu deinem Supabase Dashboard
 
-https://app.supabase.com/project/DEIN-PROJECT/editor
+https://supabase.com/dashboard/project/spdianmqihnmywgvhfom/sql/40942bac-c094-4dea-b615-a86350eb8e8b
 
 ### 2. SQL Editor öffnen
 
 Klicke auf "SQL Editor" im linken Menü.
 
 ### 3. Führe folgende SQL-Befehle aus:
-
-**Option 1: Erst löschen, dann neu erstellen (empfohlen)**
 
 ```sql
 -- Enable RLS on tasks table
@@ -25,88 +23,52 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 -- Enable RLS on categories table
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if they exist (no error if they don't exist)
-DROP POLICY IF EXISTS "Users can view own tasks" ON tasks;
-DROP POLICY IF EXISTS "Users can insert own tasks" ON tasks;
-DROP POLICY IF EXISTS "Users can update own tasks" ON tasks;
-DROP POLICY IF EXISTS "Users can delete own tasks" ON tasks;
-DROP POLICY IF EXISTS "Users can view own categories" ON categories;
-DROP POLICY IF EXISTS "Users can insert own categories" ON categories;
-DROP POLICY IF EXISTS "Users can update own categories" ON categories;
-DROP POLICY IF EXISTS "Users can delete own categories" ON categories;
-
--- Create new policies for tasks
+-- Policy: Users can only see their own tasks
 CREATE POLICY "Users can view own tasks"
 ON tasks
 FOR SELECT
 USING (auth.uid() = user_id);
 
+-- Policy: Users can only insert their own tasks
 CREATE POLICY "Users can insert own tasks"
 ON tasks
 FOR INSERT
 WITH CHECK (auth.uid() = user_id);
 
+-- Policy: Users can only update their own tasks
 CREATE POLICY "Users can update own tasks"
 ON tasks
 FOR UPDATE
 USING (auth.uid() = user_id);
 
+-- Policy: Users can only delete their own tasks
 CREATE POLICY "Users can delete own tasks"
 ON tasks
 FOR DELETE
 USING (auth.uid() = user_id);
 
--- Create new policies for categories
+-- Policy: Users can view own categories
 CREATE POLICY "Users can view own categories"
 ON categories
 FOR SELECT
 USING (auth.uid() = user_id);
 
+-- Policy: Users can insert own categories
 CREATE POLICY "Users can insert own categories"
 ON categories
 FOR INSERT
 WITH CHECK (auth.uid() = user_id);
 
+-- Policy: Users can update own categories
 CREATE POLICY "Users can update own categories"
 ON categories
 FOR UPDATE
 USING (auth.uid() = user_id);
 
+-- Policy: Users can delete own categories
 CREATE POLICY "Users can delete own categories"
 ON categories
 FOR DELETE
-USING (auth.uid() = user_id);
-```
-
-**Option 2: Nur fehlende Tasks-Policies erstellen**
-
-Falls du nur die Tasks-Policies benötigst:
-
-```sql
--- Enable RLS on tasks table
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-
--- Drop existing policies if they exist
-DROP POLICY IF EXISTS "Users can view own tasks" ON tasks;
-DROP POLICY IF EXISTS "Users can insert own tasks" ON tasks;
-DROP POLICY IF EXISTS "Users can update own tasks" ON tasks;
-DROP POLICY IF EXISTS "Users can delete own tasks" ON tasks;
-
--- Create new policies
-CREATE POLICY "Users can view own tasks"
-ON tasks FOR SELECT
-USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own tasks"
-ON tasks FOR INSERT
-WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own tasks"
-ON tasks FOR UPDATE
-USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own tasks"
-ON tasks FOR DELETE
 USING (auth.uid() = user_id);
 ```
 

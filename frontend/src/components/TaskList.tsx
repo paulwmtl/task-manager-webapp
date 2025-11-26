@@ -198,7 +198,6 @@ const TaskList: React.FC = () => {
                             <option value="All">All Categories</option>
                             <option value="Allgemein">Allgemein</option>
                             <option value="Haushalt">Haushalt</option>
-                            <option value="Schule">Schule</option>
                             <option value="Uni">Uni</option>
                             <option value="Arbeit">Arbeit</option>
                             <option value="Finanzen">Finanzen</option>
@@ -353,7 +352,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onSave, onCancel }) => {
                         >
                             <option value="Allgemein">Allgemein</option>
                             <option value="Haushalt">Haushalt</option>
-                            <option value="Schule">Schule</option>
                             <option value="Uni">Uni</option>
                             <option value="Arbeit">Arbeit</option>
                             <option value="Finanzen">Finanzen</option>
