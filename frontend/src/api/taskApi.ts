@@ -42,7 +42,7 @@ const taskToDb = (
     importance: task.importance,
     category: task.category,
     due_date: task.dueDate || null,
-    user_id: userId ?? null
+    user_id: userId || null // Ensure it's null if undefined/empty string
 });
 
 export const taskApi = {
@@ -91,9 +91,11 @@ export const taskApi = {
     createTask: async (task: Omit<Task, 'id' | 'createdAt'>): Promise<Task> => {
         const userId = await taskApi.getCurrentUserId();
         console.log('Creating task', { task, userId });
+        const dbTask = taskToDb(task, userId);
+        console.log('Creating task with DB object:', dbTask);
         const { data, error } = await supabase
             .from('tasks')
-            .insert([taskToDb(task, userId)])
+            .insert([dbTask])
             .select()
             .single();
 
