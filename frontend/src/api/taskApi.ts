@@ -101,7 +101,7 @@ export const taskApi = {
 
         if (error) {
             console.error('Error creating task:', error);
-            throw new Error(error.message);
+            throw new Error(`${error.message} (User: ${userId}, Payload UserID: ${dbTask.user_id})`);
         }
 
         return dbToTask(data);
