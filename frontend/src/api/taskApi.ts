@@ -73,7 +73,6 @@ export const taskApi = {
     },
 
     getTaskById: async (id: number): Promise<Task> => {
-        const userId = await taskApi.getCurrentUserId();
         const { data, error } = await supabase
             .from('tasks')
             .select('*')
